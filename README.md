@@ -1,6 +1,6 @@
 # mhh-telemetry
 
-Private Laravel package. Pushes a daily user count and Stripe MRR from each SaaS app to the central
+Laravel package. Pushes a daily user count and Stripe MRR from each SaaS app to the central
 dashboard at `markhadjhamou.com/telemetry`.
 
 Each app runs on its own Stripe account, so each app reports its own numbers. Replaces the
@@ -8,21 +8,10 @@ Each app runs on its own Stripe account, so each app reports its own numbers. Re
 
 ## Installing it in an app
 
-It's not on Packagist, so point Composer at the GitHub repo first:
+It's not on Packagist, so point Composer at the GitHub repo:
 
 ```bash
-composer config repositories.mhh-telemetry vcs git@github.com:Pr4w/laravel-telemetry.git
-```
-
-That adds this to the app's `composer.json`:
-
-```json
-"repositories": {
-    "mhh-telemetry": {
-        "type": "vcs",
-        "url": "git@github.com:Pr4w/laravel-telemetry.git"
-    }
-}
+composer config repositories.mhh-telemetry vcs https://github.com/Pr4w/laravel-telemetry
 ```
 
 Then require it. Use a tagged version, not `dev-main`, so deploys are reproducible:
@@ -31,9 +20,20 @@ Then require it. Use a tagged version, not `dev-main`, so deploys are reproducib
 composer require pr4w/laravel-telemetry:^1.0
 ```
 
-Composer reads the tags on the repo and resolves `^1.0` to the newest matching one. The SSH URL means
-it authenticates with the deploy key or agent the server already uses for the app's own repo — no
-tokens in `composer.json`, no `auth.json` to distribute.
+Commit the resulting `composer.json` and `composer.lock`. Nothing else is needed — no token, no
+`auth.json`, no change to the deploy command.
+
+> **The repo is public on purpose.** Composer fetches a VCS package as a zip from
+> `api.github.com/repos/.../zipball/...`, and on a *private* repo that URL needs a GitHub API token —
+> an SSH deploy key does not authenticate to the API, so deploys fail with a 404 and Composer 2.10
+> will not fall back to git (source fallback is off by default and enabling it is deprecated). Public
+> avoids the whole problem. Nothing here is sensitive: the only secret is each app's
+> `TELEMETRY_SECRET`, which lives in that app's `.env` and never in this package.
+>
+> If it ever has to go private, give every deploy server a token with `repo` scope
+> (`composer config --global github-oauth.github.com <token>`). Forcing a git clone with
+> `config.preferred-install` also works, but breaks the moment a deploy script passes `--prefer-dist`,
+> which Forge and Ploi do by default.
 
 Then one environment variable:
 
