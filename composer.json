@@ -1,0 +1,59 @@
+{
+    "name": "pr4w/laravel-telemetry",
+    "description": "Push daily user-count and Stripe MRR telemetry from a Laravel app to a central dashboard.",
+    "keywords": [
+        "laravel",
+        "telemetry",
+        "mrr",
+        "stripe",
+        "saas"
+    ],
+    "license": "MIT",
+    "type": "library",
+    "authors": [
+        {
+            "name": "Pr4w"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "illuminate/console": "^12.0 || ^13.0",
+        "illuminate/database": "^12.0 || ^13.0",
+        "illuminate/http": "^12.0 || ^13.0",
+        "illuminate/support": "^12.0 || ^13.0",
+        "psr/log": "^1.0 || ^2.0 || ^3.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^10.0 || ^11.0",
+        "phpunit/phpunit": "^11.5 || ^12.0",
+        "stripe/stripe-php": "^16.0 || ^17.0"
+    },
+    "suggest": {
+        "stripe/stripe-php": "Required by the Stripe MRR collector (^16.0 || ^17.0). Already present if you use Laravel Cashier."
+    },
+    "autoload": {
+        "psr-4": {
+            "Pr4w\\Telemetry\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Pr4w\\Telemetry\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Pr4w\\Telemetry\\TelemetryServiceProvider"
+            ]
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
