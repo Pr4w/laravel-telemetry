@@ -38,15 +38,6 @@ return [
 
     'user_model' => null,
 
-    /*
-    | Users deleted with SoftDeletes are not counted. A deleted account is
-    | churn: counting it would mean total_users could never go down, which
-    | hides exactly what the dashboard is for. Set true for the raw signup
-    | count instead. Ignored on a User model without the trait.
-    */
-
-    'count_soft_deleted' => false,
-
     'stripe' => [
 
         /*

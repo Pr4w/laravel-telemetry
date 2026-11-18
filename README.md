@@ -153,7 +153,6 @@ php artisan vendor:publish --tag=mhh-telemetry-config
 | `secret` | — | `TELEMETRY_SECRET`. The only required value. |
 | `collectors` | users + MRR | See below. |
 | `user_model` | auth provider's model | Only if the User model is somewhere unusual. |
-| `count_soft_deleted` | `false` | Count users deleted with `SoftDeletes`. Off because a deleted account is churn. |
 | `stripe.secret` | `STRIPE_SECRET` | Fallback only; Cashier is checked first. |
 | `stripe.api_version` | `2025-08-27.basil` | Pinned so a stripe-php upgrade can't shift the response shape. |
 | `stripe.statuses` | `['active']` | Add `trialing` or `past_due` to count those. |
