@@ -1,6 +1,6 @@
 # mhh-telemetry
 
-Laravel package. Pushes a daily user count and Stripe MRR from each SaaS app to the central
+Laravel package. Pushes the user count and Stripe MRR, four times a day, from each SaaS app to the central
 dashboard at `markhadjhamou.com/telemetry`.
 
 Each app runs on its own Stripe account, so each app reports its own numbers. Replaces the
@@ -42,7 +42,7 @@ TELEMETRY_SECRET=<the app's api_token from the hub>
 ```
 
 That's the whole install. The hub identifies the app by that token, the endpoint defaults to the hub,
-the Stripe key comes from Cashier, and the daily schedule registers itself.
+the Stripe key comes from Cashier, and the schedule registers itself.
 
 Check it before waiting for the cron:
 
@@ -65,7 +65,12 @@ pr4w/laravel-telemetry:dev-main` instead. Don't leave a production app on `dev-m
 ## Scheduling
 
 Automatic. The service provider registers the command on Laravel's scheduler, so there is **nothing
-to add to `routes/console.php`**. It runs daily at 03:00, with `withoutOverlapping()`.
+to add to `routes/console.php`**. It runs four times a day — 00:00, 06:00, 12:00 and 18:00 in the app's
+timezone — with `withoutOverlapping()`. Change it with `TELEMETRY_SCHEDULE_CRON`, e.g. `0 3 * * *` for
+once a day.
+
+Each run sends a fresh snapshot. Whether the dashboard keeps all four depends on the hub: keyed on the
+day, each send overwrites the previous one; keyed on the hour, you get four points a day.
 
 The one prerequisite is the standard Laravel cron entry on the server, which you already need for
 anything else scheduled:
@@ -148,12 +153,14 @@ php artisan vendor:publish --tag=mhh-telemetry-config
 | `secret` | — | `TELEMETRY_SECRET`. The only required value. |
 | `collectors` | users + MRR | See below. |
 | `user_model` | auth provider's model | Only if the User model is somewhere unusual. |
+| `count_soft_deleted` | `false` | Count users deleted with `SoftDeletes`. Off because a deleted account is churn. |
 | `stripe.secret` | `STRIPE_SECRET` | Fallback only; Cashier is checked first. |
 | `stripe.api_version` | `2025-08-27.basil` | Pinned so a stripe-php upgrade can't shift the response shape. |
 | `stripe.statuses` | `['active']` | Add `trialing` or `past_due` to count those. |
 | `stripe.currency` | `eur` | `TELEMETRY_CURRENCY` for an app billing in something else. |
 | `stripe.on_indeterminate_price` | `fail` | `warn` or `ignore` to report anyway. |
 | `schedule.enabled` | `true` | `TELEMETRY_SCHEDULE=false` to run it yourself. |
+| `schedule.cron` | `0 */6 * * *` | Four times a day. `TELEMETRY_SCHEDULE_CRON` to change it. |
 
 The Stripe key resolves `cashier.secret` → `services.stripe.secret` → `stripe.secret`, which is
 wherever the app already keeps it.

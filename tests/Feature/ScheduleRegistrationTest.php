@@ -32,13 +32,28 @@ final class ScheduleRegistrationTest extends TestCase
         );
     }
 
-    #[Test]
-    public function it_runs_daily_at_the_configured_time(): void
+    private function telemetryEvent(): mixed
     {
-        $event = collect($this->app->make(Schedule::class)->events())
+        return collect($this->app->make(Schedule::class)->events())
             ->first(fn ($event) => str_contains((string) $event->command, 'mhh-telemetry:send'));
+    }
 
-        $this->assertSame('0 3 * * *', $event->expression);
+    #[Test]
+    public function it_runs_four_times_a_day_by_default(): void
+    {
+        $this->assertSame('0 */6 * * *', $this->telemetryEvent()->expression);
+    }
+
+    protected function hourlySchedule(Application $app): void
+    {
+        $app['config']->set('mhh-telemetry.schedule.cron', '30 * * * *');
+    }
+
+    #[Test]
+    #[DefineEnvironment('hourlySchedule')]
+    public function the_frequency_can_be_changed(): void
+    {
+        $this->assertSame('30 * * * *', $this->telemetryEvent()->expression);
     }
 
     protected function disableSchedule(Application $app): void

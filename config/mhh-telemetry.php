@@ -38,6 +38,15 @@ return [
 
     'user_model' => null,
 
+    /*
+    | Users deleted with SoftDeletes are not counted. A deleted account is
+    | churn: counting it would mean total_users could never go down, which
+    | hides exactly what the dashboard is for. Set true for the raw signup
+    | count instead. Ignored on a User model without the trait.
+    */
+
+    'count_soft_deleted' => false,
+
     'stripe' => [
 
         /*
@@ -84,7 +93,13 @@ return [
 
     'schedule' => [
         'enabled' => env('TELEMETRY_SCHEDULE', true),
-        'time' => '03:00',
+
+        /*
+        | Four times a day: 00:00, 06:00, 12:00 and 18:00 in the app's timezone.
+        | Any cron expression works - '0 3 * * *' for once a day.
+        */
+
+        'cron' => env('TELEMETRY_SCHEDULE_CRON', '0 */6 * * *'),
     ],
 
 ];

@@ -59,10 +59,10 @@ class TelemetryServiceProvider extends ServiceProvider
 
         $this->callAfterResolving(Schedule::class, function (Schedule $schedule, Application $app): void {
             // No onOneServer(): it needs a lock-capable cache store, and the
-            // hub upserts on the date anyway, so a second server sending the
+            // hub upserts on the time slot, so a second server sending the
             // same numbers is a no-op rather than a duplicate row.
             $schedule->command(SendTelemetryCommand::class)
-                ->dailyAt((string) $app['config']->get('mhh-telemetry.schedule.time', '03:00'))
+                ->cron((string) $app['config']->get('mhh-telemetry.schedule.cron', '0 */6 * * *'))
                 ->withoutOverlapping();
         });
     }

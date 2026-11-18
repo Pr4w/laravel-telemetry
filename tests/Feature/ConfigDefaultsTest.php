@@ -27,6 +27,8 @@ final class ConfigDefaultsTest extends TestCase
         $this->assertNull($config['user_model']);
         $this->assertSame(['active'], $config['stripe']['statuses']);
         $this->assertSame('eur', $config['stripe']['currency']);
+        $this->assertFalse($config['count_soft_deleted']);
+        $this->assertSame('0 */6 * * *', $config['schedule']['cron']);
         $this->assertArrayNotHasKey('app', $config);
         $this->assertArrayHasKey('secret', $config['stripe']);
     }
