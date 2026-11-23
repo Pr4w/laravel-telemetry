@@ -2,6 +2,8 @@
 
 namespace Pr4w\Telemetry\Tests\Feature;
 
+use Pr4w\Telemetry\Collectors\StripeBalanceCollector;
+use Pr4w\Telemetry\Contracts\BalanceSource;
 use Pr4w\Telemetry\Contracts\SubscriptionSource;
 use Pr4w\Telemetry\Exceptions\CollectorException;
 use Pr4w\Telemetry\Tests\TestCase;
@@ -28,6 +30,7 @@ final class ConfigDefaultsTest extends TestCase
         $this->assertSame(['active'], $config['stripe']['statuses']);
         $this->assertSame('eur', $config['stripe']['currency']);
         $this->assertSame('0 */6 * * *', $config['schedule']['cron']);
+        $this->assertContains(StripeBalanceCollector::class, $config['collectors']);
         $this->assertArrayNotHasKey('app', $config);
         $this->assertArrayHasKey('secret', $config['stripe']);
     }
@@ -55,5 +58,18 @@ final class ConfigDefaultsTest extends TestCase
         // Building the client is what resolves the key, so the generator has to
         // be advanced at least once.
         iterator_to_array($this->app->make(SubscriptionSource::class)->all());
+    }
+
+    #[Test]
+    public function the_balance_reads_the_same_stripe_key(): void
+    {
+        config()->set('cashier.secret', null);
+        config()->set('services.stripe.secret', null);
+        config()->set('mhh-telemetry.stripe.secret', null);
+
+        $this->expectException(CollectorException::class);
+        $this->expectExceptionMessage('cashier.secret, services.stripe.secret, or STRIPE_SECRET');
+
+        $this->app->make(BalanceSource::class)->balance();
     }
 }

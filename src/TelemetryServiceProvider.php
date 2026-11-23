@@ -7,8 +7,11 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Http\Client\Factory as HttpFactory;
 use Illuminate\Support\ServiceProvider;
 use Pr4w\Telemetry\Commands\SendTelemetryCommand;
+use Pr4w\Telemetry\Contracts\BalanceSource;
 use Pr4w\Telemetry\Contracts\SubscriptionSource;
 use Pr4w\Telemetry\Contracts\Transport;
+use Pr4w\Telemetry\Stripe\StripeBalanceSource;
+use Pr4w\Telemetry\Stripe\StripeClientFactory;
 use Pr4w\Telemetry\Stripe\StripeSubscriptionSource;
 use Pr4w\Telemetry\Transports\HttpTransport;
 
@@ -20,6 +23,11 @@ class TelemetryServiceProvider extends ServiceProvider
 
         $this->app->bind(SubscriptionSource::class, fn (Application $app) => new StripeSubscriptionSource(
             $app['config'],
+            $app->make(StripeClientFactory::class),
+        ));
+
+        $this->app->bind(BalanceSource::class, fn (Application $app) => new StripeBalanceSource(
+            $app->make(StripeClientFactory::class),
         ));
 
         $this->app->singleton(Transport::class, fn (Application $app) => new HttpTransport(

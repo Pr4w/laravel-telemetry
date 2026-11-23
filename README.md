@@ -1,6 +1,6 @@
 # mhh-telemetry
 
-Laravel package. Pushes the user count and Stripe MRR, four times a day, from each SaaS app to the central
+Laravel package. Pushes the user count, Stripe MRR and Stripe balance, four times a day, from each SaaS app to the central
 dashboard at `markhadjhamou.com/telemetry`.
 
 Each app runs on its own Stripe account, so each app reports its own numbers. Replaces the
@@ -108,7 +108,8 @@ dashboard that quietly goes stale.
   "mrr_cents": 419900,
   "currency": "eur",
   "mrr_by_currency": { "eur": 419900 },
-  "active_subscriptions": 96
+  "active_subscriptions": 96,
+  "stripe_balance_cents": 128450
 }
 ```
 
@@ -138,6 +139,26 @@ Beyond that, versus the old script:
 - **Rounding happens once at the end**, not per subscription.
 - **Subscriptions with more than 10 items** are fully paginated. Stripe caps the nested list at 10.
 
+## Stripe balance
+
+`stripe_balance_cents` is what is sitting in Stripe right now: available plus pending, in the same
+currency as MRR. One API call per run.
+
+It drops to near zero at every payout to your bank, so on a chart it is a sawtooth rather than a
+trend — useful for "what's waiting", not for growth. It can also go negative when refunds or disputes
+exceed incoming payments, and is reported as-is. Amounts in another currency are left out and logged
+as a warning, never added in.
+
+The hub has to store it explicitly: a column, and a validation rule *without* `min:0`, since a
+negative balance is legitimate:
+
+```php
+'stripe_balance_cents' => ['required', 'integer'],
+```
+
+If the app uses a restricted Stripe key, it needs read access to Balance as well as Subscriptions —
+otherwise the whole run fails, MRR included.
+
 ## Config
 
 Only publish it if you need to change something:
@@ -151,7 +172,7 @@ php artisan vendor:publish --tag=mhh-telemetry-config
 | `enabled` | `true` | Set `TELEMETRY_ENABLED=false` on staging. |
 | `endpoint` | the hub | Override with `TELEMETRY_ENDPOINT`. |
 | `secret` | — | `TELEMETRY_SECRET`. The only required value. |
-| `collectors` | users + MRR | See below. |
+| `collectors` | users, MRR, balance | See below. |
 | `user_model` | auth provider's model | Only if the User model is somewhere unusual. |
 | `stripe.secret` | `STRIPE_SECRET` | Fallback only; Cashier is checked first. |
 | `stripe.api_version` | `2025-08-27.basil` | Pinned so a stripe-php upgrade can't shift the response shape. |
@@ -185,6 +206,7 @@ class ActiveWorkspaces implements Collector
 'collectors' => [
     UserCountCollector::class,
     StripeMrrCollector::class,
+    StripeBalanceCollector::class,
     ActiveWorkspaces::class,
 ],
 ```

@@ -1,5 +1,6 @@
 <?php
 
+use Pr4w\Telemetry\Collectors\StripeBalanceCollector;
 use Pr4w\Telemetry\Collectors\StripeMrrCollector;
 use Pr4w\Telemetry\Collectors\UserCountCollector;
 
@@ -29,6 +30,7 @@ return [
     'collectors' => [
         UserCountCollector::class,
         StripeMrrCollector::class,
+        StripeBalanceCollector::class,
     ],
 
     /*
