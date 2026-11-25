@@ -4,6 +4,7 @@ namespace Pr4w\Telemetry\Tests\Feature;
 
 use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Http;
+use Pr4w\Telemetry\Exceptions\TransportException;
 use Pr4w\Telemetry\Tests\Fixtures\ExplodingCollector;
 use Pr4w\Telemetry\Tests\Fixtures\OtherStubCollector;
 use Pr4w\Telemetry\Tests\Fixtures\StubCollector;
@@ -69,15 +70,20 @@ final class SendTelemetryCommandTest extends TestCase
     }
 
     #[Test]
-    public function a_misconfiguration_is_not_reported_as_an_application_error(): void
+    public function a_failure_reaches_the_exception_handler_with_its_reason(): void
     {
+        // Under the scheduler the console output is discarded and Laravel only
+        // reports "failed with exit code [1]", so the reason has to be reported
+        // from inside the command or it is lost.
         Http::fake();
         Exceptions::fake();
         config()->set('mhh-telemetry.endpoint', null);
 
         $this->artisan('mhh-telemetry:send')->assertExitCode(Command::FAILURE);
 
-        Exceptions::assertNothingReported();
+        Exceptions::assertReported(
+            fn (TransportException $e) => str_contains($e->getMessage(), 'Set TELEMETRY_ENDPOINT in .env')
+        );
     }
 
     #[Test]

@@ -72,6 +72,10 @@ once a day.
 Each run sends a fresh snapshot. Whether the dashboard keeps all four depends on the hub: keyed on the
 day, each send overwrites the previous one; keyed on the hour, you get four points a day.
 
+An app without `TELEMETRY_SECRET` schedules nothing: the package stays dormant until the app has been
+set up on the hub, instead of failing on the scheduler four times a day. A manual
+`php artisan mhh-telemetry:send` still says exactly what is missing.
+
 The one prerequisite is the standard Laravel cron entry on the server, which you already need for
 anything else scheduled:
 
@@ -96,7 +100,8 @@ php artisan mhh-telemetry:send --dry-run  # collect and print, send nothing
 ```
 
 Non-zero exit code on any failure, so a broken hub shows up as a failed scheduled task rather than a
-dashboard that quietly goes stale.
+dashboard that quietly goes stale. The reason is reported to the exception handler as well, so the
+error tracker shows what failed, not just Laravel's generic "failed with exit code [1]".
 
 ## The payload
 
@@ -171,7 +176,7 @@ php artisan vendor:publish --tag=mhh-telemetry-config
 | --- | --- | --- |
 | `enabled` | `true` | Set `TELEMETRY_ENABLED=false` on staging. |
 | `endpoint` | the hub | Override with `TELEMETRY_ENDPOINT`. |
-| `secret` | — | `TELEMETRY_SECRET`. The only required value. |
+| `secret` | — | `TELEMETRY_SECRET`. The only required value; without it, nothing is scheduled. |
 | `collectors` | users, MRR, balance | See below. |
 | `user_model` | auth provider's model | Only if the User model is somewhere unusual. |
 | `stripe.secret` | `STRIPE_SECRET` | Fallback only; Cashier is checked first. |

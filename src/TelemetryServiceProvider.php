@@ -61,7 +61,13 @@ class TelemetryServiceProvider extends ServiceProvider
      */
     private function registerSchedule(): void
     {
-        if (! $this->app['config']->get('mhh-telemetry.schedule.enabled', true)) {
+        $config = $this->app['config'];
+
+        // No secret means this app has not been set up on the hub yet. Stay
+        // dormant, like an error tracker without a DSN, rather than fail on
+        // the scheduler four times a day. A manual run still says what is
+        // missing.
+        if (! $config->get('mhh-telemetry.schedule.enabled', true) || blank($config->get('mhh-telemetry.secret'))) {
             return;
         }
 

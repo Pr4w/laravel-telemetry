@@ -88,7 +88,7 @@ final class HttpTransportTest extends TestCase
         Http::fake();
 
         $this->expectException(TransportException::class);
-        $this->expectExceptionMessage('mhh-telemetry.secret');
+        $this->expectExceptionMessage('Set TELEMETRY_SECRET in .env');
 
         $this->transport()->send(self::PAYLOAD);
     }

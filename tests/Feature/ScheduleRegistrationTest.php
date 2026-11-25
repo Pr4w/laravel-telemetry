@@ -56,6 +56,36 @@ final class ScheduleRegistrationTest extends TestCase
         $this->assertSame('30 * * * *', $this->telemetryEvent()->expression);
     }
 
+    protected function withoutSecret(Application $app): void
+    {
+        $this->telemetrySecret = null;
+    }
+
+    #[Test]
+    #[DefineEnvironment('withoutSecret')]
+    public function an_app_without_a_secret_schedules_nothing(): void
+    {
+        // Not set up on the hub yet: stay dormant instead of failing on the
+        // scheduler four times a day.
+        $this->assertFalse(
+            collect($this->scheduledCommands())->contains(fn (string $command) => str_contains($command, 'mhh-telemetry:send')),
+        );
+    }
+
+    protected function blankSecret(Application $app): void
+    {
+        $this->telemetrySecret = '   ';
+    }
+
+    #[Test]
+    #[DefineEnvironment('blankSecret')]
+    public function a_blank_secret_counts_as_no_secret(): void
+    {
+        $this->assertFalse(
+            collect($this->scheduledCommands())->contains(fn (string $command) => str_contains($command, 'mhh-telemetry:send')),
+        );
+    }
+
     protected function disableSchedule(Application $app): void
     {
         $app['config']->set('mhh-telemetry.schedule.enabled', false);

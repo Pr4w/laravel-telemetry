@@ -83,7 +83,7 @@ class HttpTransport implements Transport
         $value = $this->config->get("mhh-telemetry.{$key}");
 
         if (! is_string($value) || trim($value) === '') {
-            throw TransportException::missingConfiguration("mhh-telemetry.{$key}");
+            throw TransportException::missingConfiguration("mhh-telemetry.{$key}", 'TELEMETRY_'.strtoupper($key));
         }
 
         return trim($value);

@@ -3,7 +3,6 @@
 namespace Pr4w\Telemetry\Commands;
 
 use Illuminate\Console\Command;
-use Pr4w\Telemetry\Exceptions\TelemetryException;
 use Pr4w\Telemetry\Telemetry;
 use Throwable;
 
@@ -49,16 +48,13 @@ class SendTelemetryCommand extends Command
     }
 
     /**
-     * A misconfiguration is the operator's to fix and gets a clean one-line
-     * message. Anything else - a dropped database connection, a Stripe outage -
-     * also goes to the exception handler, so the stack trace reaches the logs
-     * instead of only scrolling past in cron output.
+     * Under the scheduler the console output is thrown away, and Laravel only
+     * reports "failed with exit code [1]". The reason has to reach the
+     * exception handler from here, or nobody ever sees it.
      */
     private function reportFailure(string $context, Throwable $e): int
     {
-        if (! $e instanceof TelemetryException) {
-            report($e);
-        }
+        report($e);
 
         $this->components->error($context.': '.$e->getMessage());
 

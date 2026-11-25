@@ -4,9 +4,9 @@ namespace Pr4w\Telemetry\Exceptions;
 
 class TransportException extends TelemetryException
 {
-    public static function missingConfiguration(string $key): self
+    public static function missingConfiguration(string $key, string $env): self
     {
-        return new self("Telemetry is not configured: [{$key}] is empty. Set it in config/telemetry.php or the matching env var.");
+        return new self("Telemetry is not configured: [{$key}] is empty. Set {$env} in .env.");
     }
 
     public static function requestFailed(int $status, string $body): self
